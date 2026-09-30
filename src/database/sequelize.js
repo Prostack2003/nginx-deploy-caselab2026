@@ -1,4 +1,4 @@
-import { Sequelize } from 'src/database/sequelize.js';
+import { Sequelize } from 'sequelize';
 import { databaseConfig } from '../config.js';
 
 const sequelize = new Sequelize({

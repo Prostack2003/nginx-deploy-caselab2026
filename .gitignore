@@ -7,4 +7,6 @@ Express-restapi-webcaselab2026/.idea/
 
 # Secrets
 .env
+.env.test
+coverage/
 
