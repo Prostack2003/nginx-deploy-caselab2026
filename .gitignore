@@ -1,1 +1,10 @@
+# Dependencies
 .idea
+node_modules/
+
+# IDE
+Express-restapi-webcaselab2026/.idea/
+
+# Secrets
+.env
+

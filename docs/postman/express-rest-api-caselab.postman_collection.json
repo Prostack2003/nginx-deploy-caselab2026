@@ -1,0 +1,1118 @@
+{
+    "info": {
+        "_postman_id": "86fa033f-aa15-41f2-88ba-65341ec0b6c4",
+        "name": "Case Lab 3 — SQL and Sequelize API",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "_exporter_id": "33759105"
+    },
+    "item": [
+        {
+            "name": "Health",
+            "item": [
+                {
+                    "name": "Health check",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Статус ответа 200', () => {\n    pm.response.to.have.status(200);\n});\n\npm.test('Сервис доступен', () => {\n    const body = pm.response.json();\n\n    pm.expect(body.data).to.be.an('object');\n    pm.expect(body.data.status).to.eql('ok');\n});\n\npm.test('Ответ содержит X-Request-Id', () => {\n    pm.response.to.have.header('X-Request-Id');\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/health",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["health"]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Equipment",
+            "item": [
+                {
+                    "name": "Create equipment",
+                    "event": [
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const uuid = pm.variables.replaceIn('{{$randomUUID}}');\n\npm.collectionVariables.set(\n    'equipmentSerial',\n    `POSTMAN-${uuid}`\n);"
+                                ]
+                            }
+                        },
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\n\npm.test('Статус ответа 201', () => {\n    pm.response.to.have.status(201);\n});\n\npm.test('Оборудование создано', () => {\n    pm.expect(body.data).to.be.an('object');\n    pm.expect(body.data.id).to.be.a('string');\n    pm.expect(body.data.serialNumber).to.eql(\n        pm.collectionVariables.get('equipmentSerial')\n    );\n});\n\npm.test('Ответ содержит Location', () => {\n    pm.response.to.have.header('Location');\n});\n\npm.collectionVariables.set('equipmentId', body.data.id);"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Postman Test Turbine\",\n  \"type\": \"turbine\",\n  \"serialNumber\": \"{{equipmentSerial}}\",\n  \"location\": {\n    \"lat\": 55.75,\n    \"lon\": 37.62\n  },\n  \"status\": \"operational\",\n  \"installedAt\": \"2025-01-01\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/equipment",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["equipment"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create equipment with duplicate serial number",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\n\npm.test('Статус ответа 409', () => {\n    pm.response.to.have.status(409);\n});\n\npm.test('Дубликат серийного номера отклонён', () => {\n    pm.expect(body.error.code).to.eql('CONFLICT');\n    pm.expect(body.error.message).to.include('серийным номером');\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/equipment",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["equipment"]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Duplicate Postman Turbine\",\n  \"type\": \"turbine\",\n  \"serialNumber\": \"{{equipmentSerial}}\",\n  \"location\": {\n    \"lat\": 55.75,\n    \"lon\": 37.62\n  },\n  \"status\": \"operational\",\n  \"installedAt\": \"2025-01-01\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get equipment by ID",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\nconst equipmentId =\n    pm.collectionVariables.get('equipmentId');\n\npm.test('Статус ответа 200', () => {\n    pm.response.to.have.status(200);\n});\n\npm.test('Возвращено нужное оборудование', () => {\n    pm.expect(body.data).to.be.an('object');\n    pm.expect(body.data.id).to.eql(equipmentId);\n    pm.expect(body.data.type).to.eql('turbine');\n    pm.expect(body.data.status).to.eql('operational');\n});\n\npm.test('Оборудование содержит координаты', () => {\n    pm.expect(body.data.location).to.be.an('object');\n    pm.expect(body.data.location.lat).to.be.a('number');\n    pm.expect(body.data.location.lon).to.be.a('number');\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/equipment/{{equipmentId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["equipment", "{{equipmentId}}"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List equipment",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\nconst equipmentId =\n    pm.collectionVariables.get('equipmentId');\n\npm.test('Статус ответа 200', () => {\n    pm.response.to.have.status(200);\n});\n\npm.test('Ответ содержит список оборудования', () => {\n    pm.expect(body.data).to.be.an('array');\n});\n\npm.test('Ответ содержит метаданные пагинации', () => {\n    pm.expect(body.meta).to.be.an('object');\n    pm.expect(body.meta.total).to.be.a('number');\n    pm.expect(body.meta.page).to.eql(1);\n    pm.expect(body.meta.limit).to.eql(10);\n});\n\npm.test('Созданное оборудование присутствует в списке', () => {\n    const equipmentExists = body.data.some(\n        (item) => item.id === equipmentId\n    );\n\n    pm.expect(equipmentExists).to.eql(true);\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/equipment?type=turbine&status=operational&page=1&limit=10&sortBy=name&order=asc",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["equipment"],
+                            "query": [
+                                {
+                                    "key": "type",
+                                    "value": "turbine"
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "operational"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                },
+                                {
+                                    "key": "sortBy",
+                                    "value": "name"
+                                },
+                                {
+                                    "key": "order",
+                                    "value": "asc"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update equipment",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\nconst equipmentId =\n    pm.collectionVariables.get('equipmentId');\n\npm.test('Статус ответа 200', () => {\n    pm.response.to.have.status(200);\n});\n\npm.test('Обновлено нужное оборудование', () => {\n    pm.expect(body.data.id).to.eql(equipmentId);\n    pm.expect(body.data.name).to.eql(\n        'Updated Postman Turbine'\n    );\n});\n\npm.test('Неизменённые поля сохранены', () => {\n    pm.expect(body.data.type).to.eql('turbine');\n    pm.expect(body.data.status).to.eql('operational');\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "PATCH",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Updated Postman Turbine\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/equipment/{{equipmentId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["equipment", "{{equipmentId}}"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get equipment weather",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\nconst equipmentId =\n    pm.collectionVariables.get('equipmentId');\n\npm.test('Статус ответа 200', () => {\n    pm.response.to.have.status(200);\n});\n\npm.test('Прогноз относится к нужному оборудованию', () => {\n    pm.expect(body.data.equipmentId).to.eql(\n        equipmentId\n    );\n    pm.expect(body.data.location).to.be.an('object');\n});\n\npm.test('Ответ содержит прогноз', () => {\n    pm.expect(body.data.forecast).to.be.an('object');\n    pm.expect(body.data.forecast.daily).to.be.an('array');\n    pm.expect(body.data.forecast.daily.length).to.be.above(0);\n    pm.expect(body.data.forecast.isSuitable).to.be.a(\n        'boolean'\n    );\n});\n\npm.test('Ответ содержит критерии пригодности', () => {\n    const criteria = body.data.forecast.criteria;\n\n    pm.expect(criteria.maxWindSpeedKmh).to.be.a('number');\n    pm.expect(criteria.maxPrecipitationMm).to.be.a(\n        'number'\n    );\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/equipment/{{equipmentId}}/weather",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["equipment", "{{equipmentId}}", "weather"]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Requests",
+            "item": [
+                {
+                    "name": "Create maintenance request",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\nconst equipmentId =\n    pm.collectionVariables.get('equipmentId');\n\npm.test('Статус ответа 201', () => {\n    pm.response.to.have.status(201);\n});\n\npm.test('Заявка создана для нужного оборудования', () => {\n    pm.expect(body.data).to.be.an('object');\n    pm.expect(body.data.id).to.be.a('string');\n    pm.expect(body.data.equipmentId).to.eql(equipmentId);\n});\n\npm.test('Начальный статус заявки new', () => {\n    pm.expect(body.data.status).to.eql('new');\n    pm.expect(body.data.priority).to.eql('high');\n});\n\npm.test('Ответ содержит служебные поля', () => {\n    pm.expect(body.data.createdAt).to.be.a('string');\n    pm.expect(body.data.updatedAt).to.be.a('string');\n});\n\npm.test('Ответ содержит Location', () => {\n    pm.response.to.have.header('Location');\n});\n\npm.collectionVariables.set(\n    'maintenanceRequestId',\n    body.data.id\n);"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"equipmentId\": \"{{equipmentId}}\",\n  \"title\": \"Postman maintenance request\",\n  \"description\": \"Request created by the Postman collection\",\n  \"priority\": \"high\",\n  \"plannedAt\": \"2030-01-15T10:00:00Z\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/requests",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["requests"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get maintenance request by ID",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\nconst maintenanceRequestId =\n    pm.collectionVariables.get('maintenanceRequestId');\nconst equipmentId =\n    pm.collectionVariables.get('equipmentId');\n\npm.test('Статус ответа 200', () => {\n    pm.response.to.have.status(200);\n});\n\npm.test('Возвращена нужная заявка', () => {\n    pm.expect(body.data).to.be.an('object');\n    pm.expect(body.data.id).to.eql(\n        maintenanceRequestId\n    );\n    pm.expect(body.data.equipmentId).to.eql(\n        equipmentId\n    );\n});\n\npm.test('Заявка содержит обязательные поля', () => {\n    pm.expect(body.data.title).to.be.a('string');\n    pm.expect(body.data.priority).to.eql('high');\n    pm.expect(body.data.status).to.eql('new');\n    pm.expect(body.data.createdAt).to.be.a('string');\n    pm.expect(body.data.updatedAt).to.be.a('string');\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/requests/{{maintenanceRequestId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["requests", "{{maintenanceRequestId}}"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List maintenance requests",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\nconst maintenanceRequestId =\n    pm.collectionVariables.get('maintenanceRequestId');\n\npm.test('Статус ответа 200', () => {\n    pm.response.to.have.status(200);\n});\n\npm.test('Ответ содержит массив заявок', () => {\n    pm.expect(body.data).to.be.an('array');\n});\n\npm.test('Ответ содержит метаданные', () => {\n    pm.expect(body.meta).to.be.an('object');\n    pm.expect(body.meta.total).to.be.a('number');\n    pm.expect(body.meta.page).to.eql(1);\n    pm.expect(body.meta.limit).to.eql(10);\n});\n\npm.test('Созданная заявка присутствует в списке', () => {\n    const requestExists = body.data.some(\n        (item) => item.id === maintenanceRequestId\n    );\n\n    pm.expect(requestExists).to.eql(true);\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/requests?equipmentId={{equipmentId}}&status=new&priority=high&page=1&limit=10&sortBy=createdAt&order=asc",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["requests"],
+                            "query": [
+                                {
+                                    "key": "equipmentId",
+                                    "value": "{{equipmentId}}"
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "new"
+                                },
+                                {
+                                    "key": "priority",
+                                    "value": "high"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                },
+                                {
+                                    "key": "sortBy",
+                                    "value": "createdAt"
+                                },
+                                {
+                                    "key": "order",
+                                    "value": "asc"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List equipment requests",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\nconst equipmentId =\n    pm.collectionVariables.get('equipmentId');\nconst maintenanceRequestId =\n    pm.collectionVariables.get('maintenanceRequestId');\n\npm.test('Статус ответа 200', () => {\n    pm.response.to.have.status(200);\n});\n\npm.test('Ответ содержит заявки оборудования', () => {\n    pm.expect(body.data).to.be.an('array');\n\n    body.data.forEach((item) => {\n        pm.expect(item.equipmentId).to.eql(equipmentId);\n    });\n});\n\npm.test('Созданная заявка присутствует', () => {\n    const requestExists = body.data.some(\n        (item) => item.id === maintenanceRequestId\n    );\n\n    pm.expect(requestExists).to.eql(true);\n});\n\npm.test('Ответ содержит метаданные', () => {\n    pm.expect(body.meta.total).to.be.a('number');\n    pm.expect(body.meta.page).to.eql(1);\n    pm.expect(body.meta.limit).to.eql(10);\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/equipment/{{equipmentId}}/requests?page=1&limit=10&sortBy=createdAt&order=asc",
+                            "host": ["{{baseUrl}}"],
+                            "path": [
+                                "equipment",
+                                "{{equipmentId}}",
+                                "requests"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                },
+                                {
+                                    "key": "sortBy",
+                                    "value": "createdAt"
+                                },
+                                {
+                                    "key": "order",
+                                    "value": "asc"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update maintenance request",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\nconst maintenanceRequestId =\n    pm.collectionVariables.get('maintenanceRequestId');\n\npm.test('Статус ответа 200', () => {\n    pm.response.to.have.status(200);\n});\n\npm.test('Обновлена нужная заявка', () => {\n    pm.expect(body.data.id).to.eql(\n        maintenanceRequestId\n    );\n    pm.expect(body.data.title).to.eql(\n        'Updated Postman maintenance request'\n    );\n    pm.expect(body.data.description).to.eql(\n        'Updated through the Postman collection'\n    );\n});\n\npm.test('Статус заявки не изменился', () => {\n    pm.expect(body.data.status).to.eql('new');\n});\n\npm.test('updatedAt заполнен', () => {\n    pm.expect(body.data.updatedAt).to.be.a('string');\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "PATCH",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"title\": \"Updated Postman maintenance request\",\n  \"description\": \"Updated through the Postman collection\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/requests/{{maintenanceRequestId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["requests", "{{maintenanceRequestId}}"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete equipment with open request",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\n\npm.test('Статус ответа 409', () => {\n    pm.response.to.have.status(409);\n});\n\npm.test('Возвращена ошибка конфликта', () => {\n    pm.expect(body.error).to.be.an('object');\n    pm.expect(body.error.code).to.eql('CONFLICT');\n    pm.expect(body.error.message).to.be.a('string');\n    pm.expect(body.error.details).to.be.an('array');\n});\n\npm.test('Ошибка содержит Request ID', () => {\n    pm.expect(body.error.requestId).to.be.a('string');\n    pm.expect(\n        pm.response.headers.get('X-Request-Id')\n    ).to.eql(body.error.requestId);\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/equipment/{{equipmentId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["equipment", "{{equipmentId}}"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Start request without assignees",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\n\npm.test('Статус ответа 409', () => {\n    pm.response.to.have.status(409);\n});\n\npm.test('Заявку нельзя начать без исполнителя', () => {\n    pm.expect(body.error.code).to.eql('CONFLICT');\n    pm.expect(body.error.message).to.include('без назначенного техника');\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/requests/{{maintenanceRequestId}}/status",
+                            "host": ["{{baseUrl}}"],
+                            "path": [
+                                "requests",
+                                "{{maintenanceRequestId}}",
+                                "status"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"status\": \"in_progress\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Assign request team",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\n\npm.test('Статус ответа 200', () => {\n    pm.response.to.have.status(200);\n});\n\npm.test('Назначены два специалиста', () => {\n    pm.expect(body.data).to.be.an('array');\n    pm.expect(body.data).to.have.lengthOf(2);\n});\n\npm.test('В команде ровно один ведущий', () => {\n    const leads = body.data.filter((item) => item.role === 'lead');\n    pm.expect(leads).to.have.lengthOf(1);\n    pm.expect(leads[0].id).to.eql(\n        pm.collectionVariables.get('leadTechnicianId')\n    );\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/requests/{{maintenanceRequestId}}/assignees",
+                            "host": ["{{baseUrl}}"],
+                            "path": [
+                                "requests",
+                                "{{maintenanceRequestId}}",
+                                "assignees"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"assignees\": [\n    {\n      \"technicianId\": \"{{leadTechnicianId}}\",\n      \"role\": \"lead\",\n      \"hours\": 4\n    },\n    {\n      \"technicianId\": \"{{memberTechnicianId}}\",\n      \"role\": \"member\",\n      \"hours\": 2.5\n    }\n  ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Start maintenance request",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\nconst maintenanceRequestId =\n    pm.collectionVariables.get('maintenanceRequestId');\n\npm.test('Статус ответа 200', () => {\n    pm.response.to.have.status(200);\n});\n\npm.test('Заявка переведена в in_progress', () => {\n    pm.expect(body.data.id).to.eql(\n        maintenanceRequestId\n    );\n    pm.expect(body.data.status).to.eql(\n        'in_progress'\n    );\n});\n\npm.test('Время обновления присутствует', () => {\n    pm.expect(body.data.updatedAt).to.be.a('string');\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "PATCH",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"status\": \"in_progress\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/requests/{{maintenanceRequestId}}/status",
+                            "host": ["{{baseUrl}}"],
+                            "path": [
+                                "requests",
+                                "{{maintenanceRequestId}}",
+                                "status"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get request history after start",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\n\npm.test('Статус ответа 200', () => {\n    pm.response.to.have.status(200);\n});\n\npm.test('История содержит переход new → in_progress', () => {\n    pm.expect(body.data).to.be.an('array');\n    pm.expect(body.data).to.have.lengthOf(1);\n    pm.expect(body.data[0].oldStatus).to.eql('new');\n    pm.expect(body.data[0].newStatus).to.eql('in_progress');\n    pm.expect(body.data[0].changedAt).to.be.a('string');\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/requests/{{maintenanceRequestId}}/history",
+                            "host": ["{{baseUrl}}"],
+                            "path": [
+                                "requests",
+                                "{{maintenanceRequestId}}",
+                                "history"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Remove request team member",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Статус ответа 204', () => {\n    pm.response.to.have.status(204);\n});\n\npm.test('Тело ответа пустое', () => {\n    pm.expect(pm.response.text()).to.eql('');\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/requests/{{maintenanceRequestId}}/assignees/{{memberTechnicianId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": [
+                                "requests",
+                                "{{maintenanceRequestId}}",
+                                "assignees",
+                                "{{memberTechnicianId}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get request after team member removal",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\n\npm.test('Статус ответа 200', () => {\n    pm.response.to.have.status(200);\n});\n\npm.test('В заявке остался ведущий специалист', () => {\n    pm.expect(body.data.assignees).to.be.an('array');\n    pm.expect(body.data.assignees).to.have.lengthOf(1);\n    pm.expect(body.data.assignees[0].id).to.eql(\n        pm.collectionVariables.get('leadTechnicianId')\n    );\n    pm.expect(body.data.assignees[0].role).to.eql('lead');\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/requests/{{maintenanceRequestId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["requests", "{{maintenanceRequestId}}"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Complete maintenance request",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\nconst maintenanceRequestId =\n    pm.collectionVariables.get('maintenanceRequestId');\n\npm.test('Статус ответа 200', () => {\n    pm.response.to.have.status(200);\n});\n\npm.test('Заявка переведена в done', () => {\n    pm.expect(body.data.id).to.eql(\n        maintenanceRequestId\n    );\n    pm.expect(body.data.status).to.eql('done');\n});\n\npm.test('Время обновления присутствует', () => {\n    pm.expect(body.data.updatedAt).to.be.a('string');\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "PATCH",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"status\": \"done\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/requests/{{maintenanceRequestId}}/status",
+                            "host": ["{{baseUrl}}"],
+                            "path": [
+                                "requests",
+                                "{{maintenanceRequestId}}",
+                                "status"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get completed request history",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\n\npm.test('Статус ответа 200', () => {\n    pm.response.to.have.status(200);\n});\n\npm.test('История содержит два последовательных перехода', () => {\n    pm.expect(body.data).to.be.an('array');\n    pm.expect(body.data).to.have.lengthOf(2);\n    pm.expect(body.data[0].oldStatus).to.eql('new');\n    pm.expect(body.data[0].newStatus).to.eql('in_progress');\n    pm.expect(body.data[1].oldStatus).to.eql('in_progress');\n    pm.expect(body.data[1].newStatus).to.eql('done');\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/requests/{{maintenanceRequestId}}/history",
+                            "host": ["{{baseUrl}}"],
+                            "path": [
+                                "requests",
+                                "{{maintenanceRequestId}}",
+                                "history"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Invalid status transition",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\n\npm.test('Статус ответа 409', () => {\n    pm.response.to.have.status(409);\n});\n\npm.test('Недопустимый переход отклонён', () => {\n    pm.expect(body.error).to.be.an('object');\n    pm.expect(body.error.code).to.eql('CONFLICT');\n    pm.expect(body.error.message).to.include(\n        'Переход статуса'\n    );\n});\n\npm.test('Ошибка имеет единый формат', () => {\n    pm.expect(body.error.details).to.be.an('array');\n    pm.expect(body.error.requestId).to.be.a('string');\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "PATCH",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"status\": \"new\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/requests/{{maintenanceRequestId}}/status",
+                            "host": ["{{baseUrl}}"],
+                            "path": [
+                                "requests",
+                                "{{maintenanceRequestId}}",
+                                "status"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete request with preserved history",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\n\npm.test('Статус ответа 409', () => {\n    pm.response.to.have.status(409);\n});\n\npm.test('Заявка с историей не удалена', () => {\n    pm.expect(body.error.code).to.eql('CONFLICT');\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/requests/{{maintenanceRequestId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["requests", "{{maintenanceRequestId}}"]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Analytics",
+            "item": [
+                {
+                    "name": "Get site summary",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\n\npm.test('Статус ответа 200', () => {\n    pm.response.to.have.status(200);\n});\n\npm.test('Получена сводка нужной площадки', () => {\n    pm.expect(body.data.site.id).to.eql(\n        pm.collectionVariables.get('seededSiteId')\n    );\n    pm.expect(body.data.site.location.lat).to.be.a('number');\n    pm.expect(body.data.site.location.lon).to.be.a('number');\n});\n\npm.test('Сводка содержит статистику заявок', () => {\n    pm.expect(body.data.requests.total).to.be.a('number');\n    pm.expect(body.data.requests.byStatus).to.be.an('object');\n    pm.expect(body.data.requests.byPriority).to.be.an('object');\n    pm.expect(body.data.requests.averageClosureHours).to.be.a('number');\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/sites/{{seededSiteId}}/summary",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["sites", "{{seededSiteId}}", "summary"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get equipment load report",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\n\npm.test('Статус ответа 200', () => {\n    pm.response.to.have.status(200);\n});\n\npm.test('Отчёт содержит оборудование', () => {\n    pm.expect(body.data).to.be.an('array');\n    pm.expect(body.data.length).to.be.above(0);\n});\n\npm.test('Строки отчёта содержат агрегаты', () => {\n    body.data.forEach((item) => {\n        pm.expect(item.requestCount).to.be.a('number');\n        pm.expect(item.closedRequestCount).to.be.a('number');\n        pm.expect(item.totalPlannedHours).to.be.a('number');\n        pm.expect(item).to.have.property('lastMaintenanceAt');\n    });\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/reports/equipment-load?minRequests=0",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["reports", "equipment-load"],
+                            "query": [
+                                {
+                                    "key": "minRequests",
+                                    "value": "0"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get filtered equipment load report",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\n\npm.test('Статус ответа 200', () => {\n    pm.response.to.have.status(200);\n});\n\npm.test('Применён фильтр минимального количества заявок', () => {\n    pm.expect(body.data).to.be.an('array');\n    body.data.forEach((item) => {\n        pm.expect(item.requestCount).to.be.at.least(3);\n    });\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/reports/equipment-load?createdFrom=2020-01-01T00%3A00%3A00.000Z&createdTo=2035-12-31T23%3A59%3A59.999Z&minRequests=3",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["reports", "equipment-load"],
+                            "query": [
+                                {
+                                    "key": "createdFrom",
+                                    "value": "2020-01-01T00%3A00%3A00.000Z"
+                                },
+                                {
+                                    "key": "createdTo",
+                                    "value": "2035-12-31T23%3A59%3A59.999Z"
+                                },
+                                {
+                                    "key": "minRequests",
+                                    "value": "3"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Invalid Requests",
+            "item": [
+                {
+                    "name": "Malformed JSON",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\n\npm.test('Статус ответа 400', () => {\n    pm.response.to.have.status(400);\n});\n\npm.test('Возвращена ошибка BAD_REQUEST', () => {\n    pm.expect(body.error.code).to.eql('BAD_REQUEST');\n    pm.expect(body.error.message).to.eql('Некорректный JSON');\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/equipment",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["equipment"]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"name\":",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Invalid equipment body",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\n\npm.test('Статус ответа 422', () => {\n    pm.response.to.have.status(422);\n});\n\npm.test('Ошибка содержит список некорректных полей', () => {\n    pm.expect(body.error.code).to.eql('VALIDATION_ERROR');\n    pm.expect(body.error.details).to.be.an('array');\n    pm.expect(body.error.details.length).to.be.above(0);\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/equipment",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["equipment"]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"ab\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Invalid equipment ID",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\n\npm.test('Статус ответа 422', () => {\n    pm.response.to.have.status(422);\n});\n\npm.test('Возвращена ошибка VALIDATION_ERROR', () => {\n    pm.expect(body.error.code).to.eql('VALIDATION_ERROR');\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/equipment/not-a-uuid",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["equipment", "not-a-uuid"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Invalid report date range",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const body = pm.response.json();\n\npm.test('Статус ответа 422', () => {\n    pm.response.to.have.status(422);\n});\n\npm.test('Ошибка указывает на createdTo', () => {\n    pm.expect(body.error.code).to.eql('VALIDATION_ERROR');\n    const fields = body.error.details.map((item) => item.field);\n    pm.expect(fields).to.include('createdTo');\n});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/reports/equipment-load?createdFrom=2035-01-01T00%3A00%3A00.000Z&createdTo=2020-01-01T00%3A00%3A00.000Z",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["reports", "equipment-load"],
+                            "query": [
+                                {
+                                    "key": "createdFrom",
+                                    "value": "2035-01-01T00%3A00%3A00.000Z"
+                                },
+                                {
+                                    "key": "createdTo",
+                                    "value": "2020-01-01T00%3A00%3A00.000Z"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:3000/api"
+        },
+        {
+            "key": "equipmentId",
+            "value": ""
+        },
+        {
+            "key": "maintenanceRequestId",
+            "value": ""
+        },
+        {
+            "key": "equipmentSerial",
+            "value": ""
+        },
+        {
+            "key": "seededSiteId",
+            "value": "10000000-0000-4000-8000-000000000001"
+        },
+        {
+            "key": "leadTechnicianId",
+            "value": "40000000-0000-4000-8000-000000000001"
+        },
+        {
+            "key": "memberTechnicianId",
+            "value": "40000000-0000-4000-8000-000000000002"
+        }
+    ]
+}
