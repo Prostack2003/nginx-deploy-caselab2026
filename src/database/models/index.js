@@ -5,6 +5,8 @@ import { Site } from './site.model.js';
 import { RequestStatusHistory } from './request-status-history.model.js';
 import { Technician } from './technician.model.js';
 import { RequestAssignee } from './request-assignee.model.js';
+import { User } from './user.model.js';
+import { RefreshSession } from './refresh-session.model.js';
 
 Site.hasMany(Equipment, {
     foreignKey: 'siteId',
@@ -104,6 +106,41 @@ Technician.belongsToMany(MaintenanceRequest, {
     as: 'maintenanceRequests',
 });
 
+Technician.hasOne(User, {
+    foreignKey: 'technicianId',
+    as: 'user',
+    onUpdate: 'CASCADE',
+    onDelete: 'RESTRICT',
+});
+
+User.belongsTo(Technician, {
+    foreignKey: 'technicianId',
+    as: 'technician',
+    onUpdate: 'CASCADE',
+    onDelete: 'RESTRICT',
+});
+
+User.hasMany(RefreshSession, {
+    foreignKey: 'userId',
+    as: 'refreshSessions',
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
+});
+
+RefreshSession.belongsTo(User, {
+    foreignKey: 'userId',
+    as: 'user',
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
+});
+
+RefreshSession.belongsTo(RefreshSession, {
+    foreignKey: 'replacedBySessionId',
+    as: 'replacement',
+    onUpdate: 'CASCADE',
+    onDelete: 'SET NULL',
+});
+
 export {
     Site,
     Equipment,
@@ -112,4 +149,6 @@ export {
     RequestStatusHistory,
     Technician,
     RequestAssignee,
+    User,
+    RefreshSession,
 };
