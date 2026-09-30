@@ -32,6 +32,9 @@ function getErrorStatus(error) {
     }
 
     switch (error.code) {
+        case 'UNAUTHORIZED':
+        case 'INVALID_CREDENTIALS':
+            return 401;
         case 'NOT_FOUND':
             return 404;
         case 'CONFLICT':
