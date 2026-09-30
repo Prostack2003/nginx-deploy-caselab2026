@@ -67,6 +67,26 @@ const corsOrigins = (process.env.CORS_ORIGINS ?? 'http://localhost:5173')
 const rateLimitWindowMs = Number(process.env.RATE_LIMIT_WINDOW_MS ?? 60000);
 const rateLimitMax = Number(process.env.RATE_LIMIT_MAX ?? 100);
 
+const jwtAccessSecret = process.env.JWT_ACCESS_SECRET;
+
+if (!jwtAccessSecret || jwtAccessSecret.length < 32) {
+    throw new Error('JWT_ACCESS_SECRET должен содержать не менее 32 символов');
+}
+
+const accessTokenTtl = process.env.ACCESS_TOKEN_TTL ?? '15m';
+
+const refreshTokenTtlDays = Number(process.env.REFRESH_TOKEN_TTL_DAYS ?? 7);
+
+const refreshCookieName = process.env.REFRESH_COOKIE_NAME ?? 'refreshToken';
+
+const bcryptRounds = Number(process.env.BCRYPT_ROUNDS ?? 12);
+
+const loginRateLimitWindowMs = Number(
+    process.env.LOGIN_RATE_LIMIT_WINDOW_MS ?? 900000
+);
+
+const loginRateLimitMax = Number(process.env.LOGIN_RATE_LIMIT_MAX ?? 5);
+
 export {
     port,
     nodeEnv,
@@ -84,4 +104,11 @@ export {
     corsOrigins,
     rateLimitWindowMs,
     rateLimitMax,
+    jwtAccessSecret,
+    accessTokenTtl,
+    refreshTokenTtlDays,
+    refreshCookieName,
+    bcryptRounds,
+    loginRateLimitWindowMs,
+    loginRateLimitMax,
 };
