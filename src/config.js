@@ -1,7 +1,9 @@
 import dotenv from 'dotenv';
 import process from 'node:process';
 
-dotenv.config({ quiet: true });
+const envFile = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
+
+dotenv.config({ path: envFile, quiet: true });
 
 const databaseConfig = {
     host: process.env.DB_HOST ?? 'localhost',

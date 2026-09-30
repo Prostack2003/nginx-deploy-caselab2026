@@ -22,4 +22,10 @@ export default defineConfig([
             globals: globals.nodeBuiltin,
         },
     },
+    {
+        files: ['src/tests/**/*.test.js'],
+        languageOptions: {
+            globals: globals.jest,
+        },
+    },
 ]);

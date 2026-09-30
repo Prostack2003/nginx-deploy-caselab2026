@@ -9,10 +9,15 @@
     "scripts": {
         "start": "node src/server.js",
         "dev": "node --watch src/server.js",
-        "test": "node --test",
-        "lint": "eslint SQL-restapi-webcaselab2026 --max-warnings=0",
-        "format": "prettier --write SQL-restapi-webcaselab2026",
-        "format:check": "prettier --check SQL-restapi-webcaselab2026"
+        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
+        "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js src/tests/unit --runInBand",
+        "test:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js src/tests/integration --runInBand",
+        "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage --runInBand",
+        "db:test:migrate": "NODE_ENV=test sequelize-cli --options-path sequelize-paths.cjs --env test db:migrate",
+        "db:test:migrate:undo": "NODE_ENV=test sequelize-cli --options-path sequelize-paths.cjs --env test db:migrate:undo:all",
+        "lint": "eslint . --max-warnings=0",
+        "format": "prettier --write .",
+        "format:check": "prettier --check ."
     },
     "engines": {
         "node": ">= 20.0.0"
@@ -31,9 +36,12 @@
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",
+        "@types/jest": "^30.0.0",
         "eslint": "^10.10.0",
         "globals": "^17.12.0",
+        "jest": "^30.5.2",
         "prettier": "3.9.6",
-        "sequelize-cli": "^6.6.5"
+        "sequelize-cli": "^6.6.5",
+        "supertest": "^7.3.0"
     }
 }
