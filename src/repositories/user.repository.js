@@ -22,8 +22,10 @@ async function findByEmailWithPassword(email) {
     return user === null ? null : user.get({ plain: true });
 }
 
-async function findById(userId) {
-    const user = await User.findByPk(userId);
+async function findById(userId, { transaction } = {}) {
+    const user = await User.findByPk(userId, {
+        transaction,
+    });
 
     return user === null ? null : toPublicUser(user);
 }
