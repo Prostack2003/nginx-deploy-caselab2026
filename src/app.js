@@ -10,6 +10,7 @@ import { jsonBodyLimit, corsOrigins } from './config.js';
 import { apiRateLimiter } from './middlewares/rate-limit.middleware.js';
 import helmet from 'helmet';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 
 const app = express();
 const jsonMiddleware = express.json({
@@ -27,7 +28,9 @@ app.use(helmet());
 app.use(corsMiddleware);
 app.use('/api', apiRateLimiter);
 app.use(jsonMiddleware);
+app.use(cookieParser());
 app.use('/api', apiRouter);
 app.use(notFoundHandler);
 app.use(errorHandler);
+
 export { app };

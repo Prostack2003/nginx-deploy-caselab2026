@@ -16,6 +16,10 @@ import {
 import { siteIdParamsSchema } from '../validators/site.schemas.js';
 import { equipmentLoadReportQuerySchema } from '../validators/report.schemas.js';
 import { ValidationError } from '../errors/validation.error.js';
+import {
+    loginBodySchema,
+    registerBodySchema,
+} from '../validators/auth.schemas.js';
 
 function formatZodIssues(issues, fallbackField) {
     return issues.map((issue) => ({
@@ -127,6 +131,14 @@ function validateEquipmentLoadReportQuery(request, response, next) {
     return validateQuery(equipmentLoadReportQuerySchema, request, next);
 }
 
+function validateRegisterBody(request, response, next) {
+    return validateBody(registerBodySchema, request, next);
+}
+
+function validateLoginBody(request, response, next) {
+    return validateBody(loginBodySchema, request, next);
+}
+
 export {
     validateCreateEquipmentBody,
     validateUpdateEquipmentBody,
@@ -141,4 +153,6 @@ export {
     validateRequestAssigneeParams,
     validateSiteIdParams,
     validateEquipmentLoadReportQuery,
+    validateRegisterBody,
+    validateLoginBody,
 };
