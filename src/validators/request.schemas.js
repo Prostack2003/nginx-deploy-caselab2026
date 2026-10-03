@@ -21,7 +21,7 @@ const requestIdParamsSchema = z.object({
 });
 
 const requestAssigneeParamsSchema = requestIdParamsSchema.extend({
-    userId: z.uuid(),
+    technicianId: z.uuid(),
 });
 
 const requestQuerySchema = z

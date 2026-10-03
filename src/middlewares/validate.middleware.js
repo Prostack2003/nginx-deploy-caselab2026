@@ -25,6 +25,12 @@ import {
     loginBodySchema,
     registerBodySchema,
 } from '../validators/auth.schemas.js';
+import {
+    technicianIdParamsSchema,
+    createTechnicianBodySchema,
+    updateTechnicianBodySchema,
+    technicianQuerySchema,
+} from '../validators/technician.schemas.js';
 
 function formatZodIssues(issues, fallbackField) {
     return issues.map((issue) => ({
@@ -156,6 +162,22 @@ function validateLoginBody(request, response, next) {
     return validateBody(loginBodySchema, request, next);
 }
 
+function validateTechnicianIdParams(request, response, next) {
+    return validateParams(technicianIdParamsSchema, request, next);
+}
+
+function validateCreateTechnicianBody(request, response, next) {
+    return validateBody(createTechnicianBodySchema, request, next);
+}
+
+function validateUpdateTechnicianBody(request, response, next) {
+    return validateBody(updateTechnicianBodySchema, request, next);
+}
+
+function validateTechnicianQuery(request, response, next) {
+    return validateQuery(technicianQuerySchema, request, next);
+}
+
 export {
     validateCreateEquipmentBody,
     validateUpdateEquipmentBody,
@@ -175,4 +197,8 @@ export {
     validateEquipmentLoadReportQuery,
     validateRegisterBody,
     validateLoginBody,
+    validateTechnicianIdParams,
+    validateCreateTechnicianBody,
+    validateUpdateTechnicianBody,
+    validateTechnicianQuery,
 };
