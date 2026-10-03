@@ -8,6 +8,7 @@ import { NotFoundError } from '../../errors/not-found.error.js';
 import { UnauthorizedError } from '../../errors/unauthorized.error.js';
 import { InvalidCredentialsError } from '../../errors/invalid-credentials.error.js';
 import { ForbiddenError } from '../../errors/forbidden.error.js';
+import { ServiceUnavailableError } from '../../errors/service-unavailable.error.js';
 
 describe('normalizeDatabaseError', () => {
     test('преобразует ошибку уникальности в ConflictError', () => {
@@ -53,5 +54,9 @@ describe('getErrorStatus', () => {
 
     test('возвращает 403 при недостатке прав', () => {
         expect(getErrorStatus(new ForbiddenError())).toBe(403);
+    });
+
+    test('возвращает 503 при недоступности зависимости', () => {
+        expect(getErrorStatus(new ServiceUnavailableError())).toBe(503);
     });
 });

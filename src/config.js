@@ -87,6 +87,8 @@ const loginRateLimitWindowMs = Number(
 
 const loginRateLimitMax = Number(process.env.LOGIN_RATE_LIMIT_MAX ?? 5);
 
+const shutdownTimeoutMs = Number(process.env.SHUTDOWN_TIMEOUT_MS ?? 10000);
+
 export {
     port,
     nodeEnv,
@@ -111,4 +113,5 @@ export {
     bcryptRounds,
     loginRateLimitWindowMs,
     loginRateLimitMax,
+    shutdownTimeoutMs,
 };

@@ -47,6 +47,8 @@ function getErrorStatus(error) {
             return 429;
         case 'EXTERNAL_SERVICE_ERROR':
             return 502;
+        case 'SERVICE_UNAVAILABLE':
+            return 503;
         default:
             return 500;
     }

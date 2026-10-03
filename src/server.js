@@ -1,23 +1,32 @@
 import process from 'node:process';
 import { app } from './app.js';
-import { port } from './config.js';
+import { port, shutdownTimeoutMs } from './config.js';
 import { connectDatabase, disconnectDatabase } from './database/sequelize.js';
 import { logger } from './logger.js';
 
 let httpServer;
 let isShutdown = false;
 
-async function startServer() {
-    try {
-        await connectDatabase();
+function startServer() {
+    httpServer = app.listen(port, () => {
+        logger.info(`HTTP server started on port: ${port}`);
+    });
 
-        httpServer = app.listen(port, () => {
-            logger.info(`HTTP server started on port: ${port}`);
-        });
-    } catch (error) {
-        logger.fatal(error);
+    httpServer.on('error', (error) => {
+        logger.fatal(error, 'HTTP server failed');
         process.exitCode = 1;
-    }
+    });
+
+    void connectDatabase()
+        .then(() => {
+            logger.info('Database connection established');
+        })
+        .catch((error) => {
+            logger.error(
+                error,
+                'Database connection failed; readiness is unavailable'
+            );
+        });
 }
 
 function closeHttpServer() {
@@ -35,6 +44,8 @@ function closeHttpServer() {
 
             resolve();
         });
+
+        httpServer.closeIdleConnections?.();
     });
 }
 
@@ -43,18 +54,33 @@ async function shutdown(signal) {
         return;
     }
     isShutdown = true;
-    logger.info(`Shutdown server shutdown: ${signal}`);
+    logger.info({ signal }, 'Server shutdown started');
+
+    const emergencyTimer = setTimeout(() => {
+        logger.fatal(
+            { signal, shutdownTimeoutMs },
+            'Graceful shutdown timeout exceeded'
+        );
+        httpServer?.closeAllConnections?.();
+        process.exit(1);
+    }, shutdownTimeoutMs);
+
+    emergencyTimer.unref();
+
     try {
         await closeHttpServer();
         await disconnectDatabase();
-        logger.info(`Server is closed`);
+        clearTimeout(emergencyTimer);
+        logger.info({ signal }, 'Server shutdown completed');
     } catch (error) {
-        logger.error(error);
+        clearTimeout(emergencyTimer);
+        httpServer?.closeAllConnections?.();
+        logger.error(error, 'Server shutdown failed');
         process.exitCode = 1;
     }
 }
 
-await startServer();
+startServer();
 
-process.on('SIGINT', () => shutdown('SIGINT'));
-process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => void shutdown('SIGINT'));
+process.on('SIGTERM', () => void shutdown('SIGTERM'));

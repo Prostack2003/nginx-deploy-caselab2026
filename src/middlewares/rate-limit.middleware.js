@@ -12,6 +12,8 @@ const apiRateLimiter = rateLimit({
     limit: rateLimitMax,
     standardHeaders: 'draft-8',
     legacyHeaders: false,
+    skip: (request) =>
+        request.path === '/health' || request.path.startsWith('/health/'),
     handler: (_request, _response, next) => {
         return next(
             new RateLimitError(
