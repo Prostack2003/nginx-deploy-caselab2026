@@ -7,6 +7,7 @@ import { ConflictError } from '../../errors/conflict.error.js';
 import { NotFoundError } from '../../errors/not-found.error.js';
 import { UnauthorizedError } from '../../errors/unauthorized.error.js';
 import { InvalidCredentialsError } from '../../errors/invalid-credentials.error.js';
+import { ForbiddenError } from '../../errors/forbidden.error.js';
 
 describe('normalizeDatabaseError', () => {
     test('преобразует ошибку уникальности в ConflictError', () => {
@@ -48,5 +49,9 @@ describe('getErrorStatus', () => {
 
     test('возвращает 401 для неверных учётных данных', () => {
         expect(getErrorStatus(new InvalidCredentialsError())).toBe(401);
+    });
+
+    test('возвращает 403 при недостатке прав', () => {
+        expect(getErrorStatus(new ForbiddenError())).toBe(403);
     });
 });

@@ -21,12 +21,10 @@ afterAll(async () => {
 
 describe('POST /api/auth/register', () => {
     test('регистрирует viewer и не возвращает хеш пароля', async () => {
-        const response = await request(app)
-            .post('/api/auth/register')
-            .send({
-                email: '  User@Example.COM ',
-                password: 'StrongPassword123',
-            });
+        const response = await request(app).post('/api/auth/register').send({
+            email: '  User@Example.COM ',
+            password: 'StrongPassword123',
+        });
 
         expect(response.status).toBe(201);
         expect(response.body.data).toMatchObject({
@@ -50,13 +48,11 @@ describe('POST /api/auth/register', () => {
     });
 
     test('не позволяет назначить роль через публичную регистрацию', async () => {
-        const response = await request(app)
-            .post('/api/auth/register')
-            .send({
-                email: 'user@example.com',
-                password: 'StrongPassword123',
-                role: 'admin',
-            });
+        const response = await request(app).post('/api/auth/register').send({
+            email: 'user@example.com',
+            password: 'StrongPassword123',
+            role: 'admin',
+        });
 
         expect(response.status).toBe(422);
         expect(response.body.error.code).toBe('VALIDATION_ERROR');

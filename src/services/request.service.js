@@ -12,7 +12,7 @@ const ALLOWED_STATUS_TRANSITIONS = {
     rejected: [],
 };
 
-async function createRequest(data) {
+async function createRequest(data, authorEmail) {
     const equipment = await equipmentRepository.findById(data.equipmentId);
 
     if (equipment === null) {
@@ -27,7 +27,7 @@ async function createRequest(data) {
         priority: data.priority,
         status: 'new',
         plannedAt: data.plannedAt,
-        author: 'system',
+        author: authorEmail,
     };
 
     const createdRequest = await requestRepository.create(requestObject);
