@@ -31,6 +31,11 @@ import {
     updateTechnicianBodySchema,
     technicianQuerySchema,
 } from '../validators/technician.schemas.js';
+import {
+    userIdParamsSchema,
+    userQuerySchema,
+    updateUserAccessBodySchema,
+} from '../validators/user.schemas.js';
 
 function formatZodIssues(issues, fallbackField) {
     return issues.map((issue) => ({
@@ -178,6 +183,18 @@ function validateTechnicianQuery(request, response, next) {
     return validateQuery(technicianQuerySchema, request, next);
 }
 
+function validateUserIdParams(request, response, next) {
+    return validateParams(userIdParamsSchema, request, next);
+}
+
+function validateUserQuery(request, response, next) {
+    return validateQuery(userQuerySchema, request, next);
+}
+
+function validateUpdateUserAccessBody(request, response, next) {
+    return validateBody(updateUserAccessBodySchema, request, next);
+}
+
 export {
     validateCreateEquipmentBody,
     validateUpdateEquipmentBody,
@@ -201,4 +218,7 @@ export {
     validateCreateTechnicianBody,
     validateUpdateTechnicianBody,
     validateTechnicianQuery,
+    validateUserIdParams,
+    validateUserQuery,
+    validateUpdateUserAccessBody,
 };

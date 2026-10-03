@@ -1,5 +1,12 @@
 import { User } from '../database/models/index.js';
 
+const SORT_FIELDS = {
+    email: 'email',
+    role: 'role',
+    isActive: 'isActive',
+    createdAt: 'createdAt',
+};
+
 function toPublicUser(user) {
     return {
         id: user.id,
@@ -30,6 +37,52 @@ async function findById(userId, { transaction } = {}) {
     return user === null ? null : toPublicUser(user);
 }
 
+async function findAll({
+    page = 1,
+    limit = 10,
+    sortBy = 'email',
+    order = 'asc',
+} = {}) {
+    const { rows, count } = await User.findAndCountAll({
+        order: [[SORT_FIELDS[sortBy], order.toUpperCase()]],
+        limit,
+        offset: (page - 1) * limit,
+    });
+
+    return {
+        rows: rows.map(toPublicUser),
+        count,
+    };
+}
+
+async function findByIdForUpdate(userId, transaction) {
+    return User.findByPk(userId, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+    });
+}
+
+async function findActiveAdminsForUpdate(transaction) {
+    return User.findAll({
+        where: {
+            role: 'admin',
+            isActive: true,
+        },
+        attributes: ['id'],
+        order: [['id', 'ASC']],
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+    });
+}
+
+async function updateAccess(user, changes, transaction) {
+    await user.update(changes, {
+        transaction,
+    });
+
+    return toPublicUser(user);
+}
+
 async function createViewer({ email, passwordHash }) {
     const user = await User.create({
         email,
@@ -42,4 +95,12 @@ async function createViewer({ email, passwordHash }) {
     return toPublicUser(user);
 }
 
-export { findByEmailWithPassword, findById, createViewer };
+export {
+    findByEmailWithPassword,
+    findById,
+    findAll,
+    findByIdForUpdate,
+    findActiveAdminsForUpdate,
+    updateAccess,
+    createViewer,
+};

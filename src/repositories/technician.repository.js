@@ -45,9 +45,10 @@ async function findAll(query = {}) {
     };
 }
 
-async function findById(technicianId) {
+async function findById(technicianId, { transaction } = {}) {
     const technician = await Technician.findByPk(technicianId, {
         attributes: TECHNICIAN_ATTRIBUTES,
+        transaction,
     });
 
     return technician === null ? null : technician.get({ plain: true });

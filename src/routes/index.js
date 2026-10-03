@@ -6,6 +6,7 @@ import { siteRouter } from './sites/site.routes.js';
 import { reportRouter } from './reports/report.routes.js';
 import { authRouter } from './auth/auth.routes.js';
 import { technicianRouter } from './technicians/technician.routes.js';
+import { userRouter } from './users/user.routes.js';
 
 const apiRouter = Router();
 
@@ -14,6 +15,7 @@ apiRouter.use(equipmentRouter);
 apiRouter.use(requestRouter);
 apiRouter.use(siteRouter);
 apiRouter.use(technicianRouter);
+apiRouter.use(userRouter);
 apiRouter.use(reportRouter);
 apiRouter.use(authRouter);
 
