@@ -68,7 +68,7 @@ Technician.hasMany(RequestAssignee, {
     foreignKey: 'technicianId',
     as: 'assignments',
     onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
+    onDelete: 'RESTRICT',
 });
 
 MaintenanceRequest.hasMany(RequestAssignee, {
@@ -89,7 +89,7 @@ RequestAssignee.belongsTo(Technician, {
     foreignKey: 'technicianId',
     as: 'technician',
     onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
+    onDelete: 'RESTRICT',
 });
 
 MaintenanceRequest.belongsToMany(Technician, {
@@ -104,6 +104,7 @@ Technician.belongsToMany(MaintenanceRequest, {
     foreignKey: 'technicianId',
     otherKey: 'requestId',
     as: 'maintenanceRequests',
+    onDelete: 'RESTRICT',
 });
 
 Technician.hasOne(User, {

@@ -14,7 +14,7 @@ async function replaceRequestTeam(request, response) {
 async function removeRequestAssignee(request, response) {
     await requestAssigneeService.removeRequestAssignee(
         request.params.id,
-        request.params.userId
+        request.params.technicianId
     );
 
     return response.status(204).send();

@@ -90,7 +90,7 @@ requestRouter.post(
 );
 
 requestRouter.delete(
-    '/requests/:id/assignees/:userId',
+    '/requests/:id/assignees/:technicianId',
     authenticate,
     allowAdmin,
     validateRequestAssigneeParams,
