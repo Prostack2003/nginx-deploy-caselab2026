@@ -13,7 +13,12 @@ import {
     assignRequestTeamBodySchema,
     requestAssigneeParamsSchema,
 } from '../validators/request.schemas.js';
-import { siteIdParamsSchema } from '../validators/site.schemas.js';
+import {
+    siteIdParamsSchema,
+    createSiteBodySchema,
+    updateSiteBodySchema,
+    siteQuerySchema,
+} from '../validators/site.schemas.js';
 import { equipmentLoadReportQuerySchema } from '../validators/report.schemas.js';
 import { ValidationError } from '../errors/validation.error.js';
 import {
@@ -127,6 +132,18 @@ function validateSiteIdParams(request, response, next) {
     return validateParams(siteIdParamsSchema, request, next);
 }
 
+function validateCreateSiteBody(request, response, next) {
+    return validateBody(createSiteBodySchema, request, next);
+}
+
+function validateUpdateSiteBody(request, response, next) {
+    return validateBody(updateSiteBodySchema, request, next);
+}
+
+function validateSiteQuery(request, response, next) {
+    return validateQuery(siteQuerySchema, request, next);
+}
+
 function validateEquipmentLoadReportQuery(request, response, next) {
     return validateQuery(equipmentLoadReportQuerySchema, request, next);
 }
@@ -152,6 +169,9 @@ export {
     validateAssignRequestTeamBody,
     validateRequestAssigneeParams,
     validateSiteIdParams,
+    validateCreateSiteBody,
+    validateUpdateSiteBody,
+    validateSiteQuery,
     validateEquipmentLoadReportQuery,
     validateRegisterBody,
     validateLoginBody,

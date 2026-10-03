@@ -1,8 +1,95 @@
 import { QueryTypes } from 'sequelize';
 import { sequelize } from '../database/sequelize.js';
+import { Site } from '../database/models/index.js';
 
 const REQUEST_STATUSES = ['new', 'in_progress', 'done', 'rejected'];
 const REQUEST_PRIORITIES = ['low', 'medium', 'high', 'critical'];
+const SITE_ATTRIBUTES = [
+    'id',
+    'name',
+    'code',
+    'region',
+    'latitude',
+    'longitude',
+    'createdAt',
+    'updatedAt',
+];
+const SITE_SORT_FIELDS = {
+    name: 'name',
+    code: 'code',
+    region: 'region',
+};
+
+async function create(siteData) {
+    const site = await Site.create({
+        name: siteData.name,
+        code: siteData.code,
+        region: siteData.region,
+        latitude: siteData.location.lat,
+        longitude: siteData.location.lon,
+    });
+
+    return site.get({ plain: true });
+}
+
+async function findAll(query = {}) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const offset = (page - 1) * limit;
+    const sortField = SITE_SORT_FIELDS[query.sortBy] ?? 'name';
+    const sortDirection = query.order === 'desc' ? 'DESC' : 'ASC';
+
+    const { rows, count } = await Site.findAndCountAll({
+        attributes: SITE_ATTRIBUTES,
+        order: [[sortField, sortDirection]],
+        limit,
+        offset,
+    });
+
+    return {
+        rows: rows.map((site) => site.get({ plain: true })),
+        count,
+    };
+}
+
+async function findById(siteId) {
+    const site = await Site.findByPk(siteId, {
+        attributes: SITE_ATTRIBUTES,
+    });
+
+    return site === null ? null : site.get({ plain: true });
+}
+
+async function update(siteId, changes) {
+    const site = await Site.findByPk(siteId);
+
+    if (site === null) {
+        return null;
+    }
+
+    const databaseChanges = { ...changes };
+
+    delete databaseChanges.location;
+
+    if (changes.location !== undefined) {
+        databaseChanges.latitude = changes.location.lat;
+        databaseChanges.longitude = changes.location.lon;
+    }
+
+    await site.update(databaseChanges);
+
+    return site.get({ plain: true });
+}
+
+async function remove(siteId) {
+    const deletedCount = await Site.destroy({
+        where: {
+            id: siteId,
+        },
+    });
+
+    return deletedCount > 0;
+}
 
 function queryOptions(siteId) {
     return {
@@ -130,4 +217,4 @@ async function findSummaryById(siteId) {
     };
 }
 
-export { findSummaryById };
+export { create, findAll, findById, update, remove, findSummaryById };
