@@ -132,4 +132,16 @@ async function remove(requestId, technicianId) {
     return deletedCount > 0;
 }
 
-export { replaceTeam, remove };
+async function isTechnicianAssigned(requestId, technicianId) {
+    const assignment = await RequestAssignee.findOne({
+        where: {
+            requestId,
+            technicianId,
+        },
+        attributes: ['requestId'],
+    });
+
+    return assignment !== null;
+}
+
+export { replaceTeam, remove, isTechnicianAssigned };

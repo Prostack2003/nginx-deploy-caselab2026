@@ -1,7 +1,10 @@
 import * as requestService from '../services/request.service.js';
 
 async function createRequest(request, response) {
-    const createdRequest = await requestService.createRequest(request.body);
+    const createdRequest = await requestService.createRequest(
+        request.body,
+        request.user.email
+    );
 
     response.location(`/api/requests/${createdRequest.id}`);
 

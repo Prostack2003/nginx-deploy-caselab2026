@@ -15,13 +15,23 @@ import {
     validateEquipmentQuery,
     validateRequestQuery,
 } from '../../middlewares/validate.middleware.js';
+import { authenticate } from '../../middlewares/authenticate.middleware.js';
+import { allowAdmin, allowDomainRead } from '../../auth/role-policies.js';
 
 const equipmentRouter = Router();
 
-equipmentRouter.get('/equipment', validateEquipmentQuery, listEquipment);
+equipmentRouter.get(
+    '/equipment',
+    authenticate,
+    allowDomainRead,
+    validateEquipmentQuery,
+    listEquipment
+);
 
 equipmentRouter.get(
     '/equipment/:id/requests',
+    authenticate,
+    allowDomainRead,
     validateEquipmentIdParams,
     validateRequestQuery,
     listRequestsByEquipmentId
@@ -29,28 +39,41 @@ equipmentRouter.get(
 
 equipmentRouter.get(
     '/equipment/:id/weather',
+    authenticate,
+    allowDomainRead,
     validateEquipmentIdParams,
     getEquipmentWeather
 );
 
 equipmentRouter.post(
     '/equipment',
+    authenticate,
+    allowAdmin,
     validateCreateEquipmentBody,
     createEquipment
 );
+
 equipmentRouter.get(
     '/equipment/:id',
+    authenticate,
+    allowDomainRead,
     validateEquipmentIdParams,
     getEquipmentById
 );
+
 equipmentRouter.patch(
     '/equipment/:id',
+    authenticate,
+    allowAdmin,
     validateEquipmentIdParams,
     validateUpdateEquipmentBody,
     updateEquipment
 );
+
 equipmentRouter.delete(
     '/equipment/:id',
+    authenticate,
+    allowAdmin,
     validateEquipmentIdParams,
     deleteEquipment
 );

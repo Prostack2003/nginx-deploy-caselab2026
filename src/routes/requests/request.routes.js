@@ -11,34 +11,52 @@ import {
     validateAssignRequestTeamBody,
     validateRequestAssigneeParams,
 } from '../../middlewares/validate.middleware.js';
+import { authenticate } from '../../middlewares/authenticate.middleware.js';
+import {
+    allowAdmin,
+    allowDomainRead,
+    allowTechnicianOrAdmin,
+} from '../../auth/role-policies.js';
+import { authorizeRequestStatusChange } from '../../middlewares/authorize-request-status.middleware.js';
 
 const requestRouter = Router();
 
 requestRouter.get(
     '/requests',
+    authenticate,
+    allowDomainRead,
     validateRequestQuery,
     requestController.listRequests
 );
+
 requestRouter.get(
     '/requests/:id',
+    authenticate,
+    allowDomainRead,
     validateRequestIdParams,
     requestController.getRequestById
 );
 
 requestRouter.get(
     '/requests/:id/history',
+    authenticate,
+    allowDomainRead,
     validateRequestIdParams,
     requestStatusHistoryController.listRequestStatusHistory
 );
 
 requestRouter.post(
     '/requests',
+    authenticate,
+    allowTechnicianOrAdmin,
     validateCreateRequestBody,
     requestController.createRequest
 );
 
 requestRouter.patch(
     '/requests/:id',
+    authenticate,
+    allowTechnicianOrAdmin,
     validateRequestIdParams,
     validateUpdateRequestBody,
     requestController.updateRequest
@@ -46,19 +64,26 @@ requestRouter.patch(
 
 requestRouter.patch(
     '/requests/:id/status',
+    authenticate,
+    allowTechnicianOrAdmin,
     validateRequestIdParams,
+    authorizeRequestStatusChange,
     validateChangeRequestStatusBody,
     requestController.changeRequestStatus
 );
 
 requestRouter.delete(
     '/requests/:id',
+    authenticate,
+    allowAdmin,
     validateRequestIdParams,
     requestController.deleteRequest
 );
 
 requestRouter.post(
     '/requests/:id/assignees',
+    authenticate,
+    allowAdmin,
     validateRequestIdParams,
     validateAssignRequestTeamBody,
     requestAssigneeController.replaceRequestTeam
@@ -66,6 +91,8 @@ requestRouter.post(
 
 requestRouter.delete(
     '/requests/:id/assignees/:userId',
+    authenticate,
+    allowAdmin,
     validateRequestAssigneeParams,
     requestAssigneeController.removeRequestAssignee
 );

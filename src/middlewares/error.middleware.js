@@ -35,6 +35,8 @@ function getErrorStatus(error) {
         case 'UNAUTHORIZED':
         case 'INVALID_CREDENTIALS':
             return 401;
+        case 'FORBIDDEN':
+            return 403;
         case 'NOT_FOUND':
             return 404;
         case 'CONFLICT':
