@@ -5,8 +5,11 @@ import {
     validateRegisterBody,
 } from '../../middlewares/validate.middleware.js';
 import { loginRateLimiter } from '../../middlewares/rate-limit.middleware.js';
+import { authenticate } from '../../middlewares/authenticate.middleware.js';
 
 const authRouter = Router();
+
+authRouter.get('/auth/me', authenticate, authController.getMe);
 
 authRouter.post(
     '/auth/register',
