@@ -52,4 +52,10 @@ async function logout(request, response) {
     return response.status(204).send();
 }
 
-export { register, login, refresh, logout };
+function getMe(request, response) {
+    return response.status(200).json({
+        data: request.user,
+    });
+}
+
+export { register, login, refresh, logout, getMe };
